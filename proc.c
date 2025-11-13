@@ -113,15 +113,26 @@ growproc(int n)
   
   sz = proc->sz;
   if(n > 0){
-    if((sz = allocuvm(proc->pgdir, sz, sz + n)) == 0)
-    {
-      cprintf("Allocating pages failed!\n"); // CS3320: project 2
-      return -1;
+    // Check if lazy allocator is enabled
+    if(page_allocator_type == 1){
+      // LAZY allocator: just update size, don't allocate physical memory yet
+      if(sz + n > KERNBASE){
+        cprintf("Allocating pages failed!\n");
+        return -1;
+      }
+      sz = sz + n;
+    } else {
+      // DEFAULT allocator: allocate physical memory immediately
+      if((sz = allocuvm(proc->pgdir, sz, sz + n)) == 0)
+      {
+        cprintf("Allocating pages failed!\n");
+        return -1;
+      }
     }
   } else if(n < 0){
     if((sz = deallocuvm(proc->pgdir, sz, sz + n)) == 0)
     {
-      cprintf("Deallocating pages failed!\n"); // CS3320: project 2
+      cprintf("Deallocating pages failed!\n");
       return -1;
     }
   }
